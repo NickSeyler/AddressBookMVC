@@ -11,9 +11,11 @@ using AddressBookMVC.Models;
 using Microsoft.AspNetCore.Identity;
 using AddressBookMVC.Services.Interfaces;
 using AddressBookMVC.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AddressBookMVC.Controllers
 {
+    [Authorize]
     public class ContactsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -35,7 +37,9 @@ namespace AddressBookMVC.Controllers
         // GET: Contacts
         public async Task<IActionResult> Index()
         {
-            var DBResults = _context.Contacts.Include(c => c.User);
+            string userId = _userManager.GetUserId(User);
+            var DBResults = _context.Contacts.Include(c => c.User).Where(c => c.UserId == userId);
+            
             List<Contact> contacts = await DBResults.ToListAsync();
             return View(contacts);
         }
@@ -116,7 +120,10 @@ namespace AddressBookMVC.Controllers
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", contact.UserId);
+
+            string userId = _userManager.GetUserId(User);
+            ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>().ToList());
+            ViewData["CategoryList"] = new MultiSelectList(await _categoryService.GetUserCategoriesAsync(userId), "Id", "Name");
             return View(contact);
         }
 
@@ -125,7 +132,7 @@ namespace AddressBookMVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,FirstName,LastName,Birthday,Address1,Address2,City,State,ZipCode,Email,PhoneNumber,Created,ImageData,ImageType")] Contact contact)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,FirstName,LastName,Birthday,Address1,Address2,City,State,ZipCode,Email,PhoneNumber,Created,ImageFile,ImageData,ImageType")] Contact contact, List<int> categoryList)
         {
             if (id != contact.Id)
             {
@@ -133,11 +140,37 @@ namespace AddressBookMVC.Controllers
             }
 
             if (ModelState.IsValid)
+
             {
                 try
                 {
+                    contact.Created = DateTime.SpecifyKind(contact.Created, DateTimeKind.Utc);
+
+                    if (contact.Birthday != null)
+                    {
+                        contact.Birthday = DateTime.SpecifyKind((DateTime)contact.Birthday, DateTimeKind.Utc);
+                    }
+                    if (contact.ImageFile != null)
+                    {
+                        contact.ImageData = await _imageService.ConvertFileToByteArrayAsync(contact.ImageFile);
+                        contact.ImageType = contact.ImageFile.ContentType;
+                    }
+
                     _context.Update(contact);
                     await _context.SaveChangesAsync();
+
+
+                    var oldCategories = await _categoryService.GetContactCategoriesAsync(contact.Id);
+                    //Remove contact from current categories
+                    foreach (var category in oldCategories)
+                    {
+                        await _categoryService.RemoveContactFromCategoryAsync(category.Id, contact.Id);
+                    }
+
+                    //Add contact to categories chosen
+                    await _categoryService.AddContactToCategoriesAsync(categoryList, contact.Id);
+
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -152,7 +185,9 @@ namespace AddressBookMVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", contact.UserId);
+            string userId = _userManager.GetUserId(User);
+            ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>().ToList());
+            ViewData["CategoryList"] = new MultiSelectList(await _categoryService.GetUserCategoriesAsync(userId), "Id", "Name");
             return View(contact);
         }
 
