@@ -38,6 +38,7 @@ namespace AddressBookMVC.Models
         [Required]
         public string? State { get; set; }
 
+        [DataType(DataType.PostalCode)]
         public int ZipCode { get; set; }
 
         [DataType(DataType.EmailAddress)]

@@ -1,5 +1,7 @@
 using AddressBookMVC.Data;
 using AddressBookMVC.Models;
+using AddressBookMVC.Services;
+using AddressBookMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,9 +18,17 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<DataService>();
+
 builder.Services.AddMvc();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
+
+IServiceScope scope = app.Services.CreateScope();
+await scope.ServiceProvider.GetRequiredService<DataService>().ManageDataAsync();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
