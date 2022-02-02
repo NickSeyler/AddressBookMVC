@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using AddressBookMVC.Services.Interfaces;
 using AddressBookMVC.Enums;
 using Microsoft.AspNetCore.Authorization;
+using AddressBookMVC.Services;
 
 namespace AddressBookMVC.Controllers
 {
@@ -21,16 +22,20 @@ namespace AddressBookMVC.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly ICategoryService _categoryService;
+        private readonly IContactService _contactService;
         private readonly IImageService _imageService;
 
         public ContactsController(ApplicationDbContext context,
                                   UserManager<AppUser> userManager,
                                   ICategoryService categoryService,
-                                  IImageService imageService)
+                                  IContactService contactService,
+                                  IImageService imageService
+                                  )
         {
             _context = context;
             _userManager = userManager;
             _categoryService = categoryService;
+            _contactService = contactService;
             _imageService = imageService;
         }
 
@@ -38,7 +43,10 @@ namespace AddressBookMVC.Controllers
         public async Task<IActionResult> Index()
         {
             string userId = _userManager.GetUserId(User);
-            var DBResults = _context.Contacts.Include(c => c.User).Where(c => c.UserId == userId);
+            var DBResults = _context.Contacts
+                                    .Include(c => c.User)
+                                    .Include(c => c.Categories)
+                                    .Where(c => c.UserId == userId);
             
             List<Contact> contacts = await DBResults.ToListAsync();
             return View(contacts);
@@ -52,9 +60,8 @@ namespace AddressBookMVC.Controllers
                 return NotFound();
             }
 
-            var contact = await _context.Contacts
-                .Include(c => c.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            Contact contact = await _contactService.GetContactByIdAsync(id.Value);
+            
             if (contact == null)
             {
                 return NotFound();
@@ -123,7 +130,7 @@ namespace AddressBookMVC.Controllers
 
             string userId = _userManager.GetUserId(User);
             ViewData["StatesList"] = new SelectList(Enum.GetValues(typeof(States)).Cast<States>().ToList());
-            ViewData["CategoryList"] = new MultiSelectList(await _categoryService.GetUserCategoriesAsync(userId), "Id", "Name");
+            ViewData["CategoryList"] = new MultiSelectList(await _categoryService.GetUserCategoriesAsync(userId), "Id", "Name", await _categoryService.GetContactCategoryIdsAsync(contact.Id));
             return View(contact);
         }
 

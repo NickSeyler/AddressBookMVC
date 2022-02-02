@@ -16,90 +16,144 @@ namespace AddressBookMVC.Services
 
         public async Task AddContactToCategoryAsync(int categoryId, int contactId)
         {
-            if (!await IsContactInCategory(categoryId, contactId))
+            try
+            {
+                if (!await IsContactInCategory(categoryId, contactId))
+                {
+
+                    Contact contact = (await _context.Contacts.FindAsync(contactId))!;
+
+                    Category category = (await _context.Categories.FindAsync(categoryId))!;
+                    if (category != null && contact != null)
+                    {
+                        category.Contacts.Add(contact);
+                        //Alternate
+                        //contact.Categories.Add(category);
+
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+            catch (Exception)
             {
 
-                Contact contact = (await _context.Contacts.FindAsync(contactId))!;
-
-                Category category = (await _context.Categories.FindAsync(categoryId))!;
-                if (category != null && contact != null)
-                {
-                    category.Contacts.Add(contact);
-                    //Alternate
-                    //contact.Categories.Add(category);
-
-                    await _context.SaveChangesAsync();
-                }
+                throw;
             }
         }
 
         public async Task AddContactToCategoriesAsync(List<int> categoryList, int contactId)
         {
-            foreach (var categoryId in categoryList)
+            try
             {
-                if (!await IsContactInCategory(categoryId, contactId))
+                foreach (var categoryId in categoryList)
                 {
-
-                    var contact = await _context.Contacts.FindAsync(contactId);
-
-                    var category = await _context.Categories.FindAsync(categoryId);
-                    if (category != null && contact != null)
+                    if (!await IsContactInCategory(categoryId, contactId))
                     {
 
-                        contact.Categories.Add(category);
-                        await _context.SaveChangesAsync();
+                        var contact = await _context.Contacts.FindAsync(contactId);
+
+                        var category = await _context.Categories.FindAsync(categoryId);
+                        if (category != null && contact != null)
+                        {
+
+                            contact.Categories.Add(category);
+                            await _context.SaveChangesAsync();
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
         public async Task<ICollection<Category>> GetContactCategoriesAsync(int contactId)
         {
-            var contact = await _context.Contacts.Include(c => c.Categories).FirstOrDefaultAsync(c => c.Id == contactId);
-            return contact!.Categories;
+            try
+            {
+                var contact = await _context.Contacts.Include(c => c.Categories).FirstOrDefaultAsync(c => c.Id == contactId);
+                return contact!.Categories;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         public async Task<ICollection<int>> GetContactCategoryIdsAsync(int contactId)
         {
-            var categoryIds = (await GetContactCategoriesAsync(contactId)).Select(c => c.Id).ToList();
-            return categoryIds;
+            try
+            {
+                var categoryIds = (await GetContactCategoriesAsync(contactId)).Select(c => c.Id).ToList();
+                return categoryIds;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
 
         public async Task<bool> IsContactInCategory(int categoryId, int contactId)
         {
-            Contact contact = (await _context.Contacts.FindAsync(contactId))!;
+            try
+            {
+                Contact contact = (await _context.Contacts.FindAsync(contactId))!;
 
-            return await _context.Categories
-                .Include(c => c.Contacts)
-                .Where(c => c.Id == categoryId && c.Contacts.Contains(contact))
-                .AnyAsync();
+                return await _context.Categories
+                        .Include(c => c.Contacts)
+                        .Where(c => c.Id == categoryId && c.Contacts.Contains(contact))
+                        .AnyAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task RemoveContactFromCategoryAsync(int categoryId, int contactId)
         {
-            if (await IsContactInCategory(categoryId, contactId))
+            try
             {
-                var contact = await _context.Contacts.FindAsync(contactId);
-
-                var category = await _context.Categories.FindAsync(categoryId);
-
-                if (category is not null && contact is not null)
+                if (await IsContactInCategory(categoryId, contactId))
                 {
-                    category.Contacts.Remove(contact);
+                    var contact = await _context.Contacts.FindAsync(contactId);
 
-                    //Alternate
-                    //contact.Categories.Remove(category);
+                    var category = await _context.Categories.FindAsync(categoryId);
 
-                    await _context.SaveChangesAsync();
+                    if (category is not null && contact is not null)
+                    {
+                        category.Contacts.Remove(contact);
+
+                        //Alternate
+                        //contact.Categories.Remove(category);
+
+                        await _context.SaveChangesAsync();
+                    }
                 }
-
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
         public async Task<IEnumerable<Category>> GetUserCategoriesAsync(string userId)
         {
-            return await _context.Categories.Where(c => c.UserId == userId).ToListAsync();
+            List<Category> categories = new();
+
+            try
+            {
+                categories = await _context.Categories.Where(c => c.UserId == userId).ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        
+            return categories;
         }
     }
 }
