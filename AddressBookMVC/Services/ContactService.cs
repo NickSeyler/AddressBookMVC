@@ -17,11 +17,18 @@ namespace AddressBookMVC.Services
         {
             Contact? contact = new();
 
-            contact = await _context.Contacts
-                                    .Include(c => c.User)
-                                    .Include(c => c.Categories)
-                                    .FirstOrDefaultAsync(c => c.Id == contactId);
-            return contact!;
+            try
+            {
+                contact = await _context.Contacts
+                                            .Include(c => c.User)
+                                            .Include(c => c.Categories)
+                                            .FirstOrDefaultAsync(c => c.Id == contactId);
+                return contact!;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

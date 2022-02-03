@@ -20,6 +20,11 @@ namespace AddressBookMVC.Services
             _categoryService = categoryService;
         }
 
+        public DateTime  GetPostgresDate(DateTime dateTime)
+        {
+            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+        }
+
         public async Task ManageDataAsync()
         {
             await _context.Database.MigrateAsync();

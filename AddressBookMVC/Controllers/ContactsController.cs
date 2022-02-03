@@ -24,12 +24,16 @@ namespace AddressBookMVC.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IContactService _contactService;
         private readonly IImageService _imageService;
+        private readonly DataService _dataService;
+        private readonly SearchService _searchService;
 
         public ContactsController(ApplicationDbContext context,
                                   UserManager<AppUser> userManager,
                                   ICategoryService categoryService,
                                   IContactService contactService,
-                                  IImageService imageService
+                                  IImageService imageService,
+                                  DataService dataService,
+                                  SearchService searchService
                                   )
         {
             _context = context;
@@ -37,6 +41,8 @@ namespace AddressBookMVC.Controllers
             _categoryService = categoryService;
             _contactService = contactService;
             _imageService = imageService;
+            _dataService = dataService;
+            _searchService = searchService;
         }
 
         // GET: Contacts
@@ -50,6 +56,16 @@ namespace AddressBookMVC.Controllers
             
             List<Contact> contacts = await DBResults.ToListAsync();
             return View(contacts);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SearchContacts(string searchString)
+        {
+            var userId = _userManager.GetUserId(User);
+            var model = _searchService.SearchContacts(searchString, userId);
+
+            return View(nameof(Index), model);
         }
 
         // GET: Contacts/Details/5
@@ -90,11 +106,11 @@ namespace AddressBookMVC.Controllers
             if (ModelState.IsValid)
             {
                 contact.UserId = _userManager.GetUserId(User);
-                contact.Created = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                contact.Created = _dataService.GetPostgresDate(DateTime.Now);
 
                 if (contact.Birthday != null)
                 {
-                    contact.Birthday = DateTime.SpecifyKind((DateTime)contact.Birthday, DateTimeKind.Utc);
+                    contact.Birthday = _dataService.GetPostgresDate(contact.Birthday.Value);
                 }
                 if (contact.ImageFile != null)
                 {
@@ -147,15 +163,14 @@ namespace AddressBookMVC.Controllers
             }
 
             if (ModelState.IsValid)
-
             {
                 try
                 {
-                    contact.Created = DateTime.SpecifyKind(contact.Created, DateTimeKind.Utc);
+                    contact.Created = _dataService.GetPostgresDate(contact.Created);
 
                     if (contact.Birthday != null)
                     {
-                        contact.Birthday = DateTime.SpecifyKind((DateTime)contact.Birthday, DateTimeKind.Utc);
+                        contact.Birthday = _dataService.GetPostgresDate(contact.Birthday.Value);
                     }
                     if (contact.ImageFile != null)
                     {
