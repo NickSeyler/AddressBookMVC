@@ -1,18 +1,29 @@
+:root {
+    --ns-dark-color: #152133;
+    --ns-light-color: #223852;
+    --ns-text-color: #ebede4;
+}
+
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background: -webkit-linear-gradient(left, var(--ns-light-color), var(--ns-dark-color));
+}
+
+p, h1 {
+    color: var(--ns-text-color);
 }
