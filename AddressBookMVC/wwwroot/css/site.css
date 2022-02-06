@@ -27,3 +27,8 @@ body {
 p, h1 {
     color: var(--ns-text-color);
 }
+
+.contact-list-image {
+    max-width: 100%;
+    height: auto;
+}

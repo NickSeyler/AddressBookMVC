@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Address Book</title>
+    <title>@ViewData["Title"] - AddressBookMVC</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -16,18 +16,17 @@
     
     <!-- Custom Styles -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/glassStyle.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AddressBookMVC.styles.css" asp-append-version="true" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/ico" href="~/img/favicon-x.ico"/>
 </head>
-<body class="pageBG">
+<body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3 bg-transparent">
             <div class="container-fluid">
                 <a class="navbar-brand text-light" asp-area="" asp-controller="Home" asp-action="Index">
-                    Address Book
+                    AddressBookMVC
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +42,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (SignInManager.IsSignedIn(User))
@@ -71,7 +73,7 @@
 
     <footer class="footer text-light bg-transparent">
         <div class="container">
-            &copy; Nick Seyler 2022 - AddressBook
+            &copy; 2022 - AddressBookMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
