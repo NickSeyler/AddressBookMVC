@@ -20,7 +20,7 @@ namespace AddressBookMVC.Services
             _categoryService = categoryService;
         }
 
-        public DateTime  GetPostgresDate(DateTime dateTime)
+        public DateTime GetPostgresDate(DateTime dateTime)
         {
             return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
         }

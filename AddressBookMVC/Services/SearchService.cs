@@ -29,6 +29,7 @@ namespace AddressBookMVC.Services
                 || c.Categories.Select(t => t.Name!.ToLower()).Contains(searchString.ToLower())
                 );
             }
+
             return result.OrderByDescending(c => c.LastName).ThenByDescending(c => c.FirstName);
         }
 
